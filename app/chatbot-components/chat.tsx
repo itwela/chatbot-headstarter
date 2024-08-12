@@ -1,20 +1,18 @@
 'use client'
 
-import { useState, useEffect } from "react";
-import { Message, streamConversation } from "../actions";
-import { readStreamableValue } from "ai/rsc";
-import { Input } from "@/components/ui/input"
+import { useRef, useState, useEffect } from "react";
 import { FaLongArrowAltUp, FaSpinner } from "react-icons/fa";
 import rehypeRaw from 'rehype-raw';
 import ReactMarkdown from 'react-markdown'
 import { motion, AnimatePresence, useInView, useAnimation, Variant } from "framer-motion";
-import { useRef } from "react";
-import loadingGif from '../assets/load.gif'
 import { Textarea } from "@/components/ui/textarea";
 import { useInView as useReactIOInView } from "react-intersection-observer";
 import { useChatbot } from "../chatbotProvider";
-// 
 
+export interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export type AnimatedTextProps = {
     text: string | string[];
@@ -76,6 +74,7 @@ export const AnimatedText = ({
       }
   
       return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInView]);
 
 
@@ -131,25 +130,28 @@ export default function Chatbox() {
       }
     };
 
-    // gemini function 
     const startChat = async () => {
-      
       setIsThinking(true);
 
-      const { messages, newMessage } = await streamConversation([
-        ...conversation,
-        { role: "user", content: input },
-      ]);
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          history: conversation,
+        }),
+      });
 
-      const textContent = newMessage;
+      const { response: textContent } = await response.json();
 
       setConversation([
-          ...messages,
-          { role: "assistant", content: textContent },
+        ...conversation,
+        { role: "user", content: input },
+        { role: "assistant", content: textContent.answer },
       ]);
 
-      console.log("textContent", textContent);
-      console.log("newMessage", newMessage);
       setInput(""); // Clear the input field after submitting
       setIsThinking(false);
 
@@ -157,7 +159,7 @@ export default function Chatbox() {
       setTimeout(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 300);
-    }
+    };
 
     // framer motion animation stuff
     const squareVariants = {
@@ -176,9 +178,7 @@ export default function Chatbox() {
 
 
     return (
-        <>
-
-            <section className="w-full h-full flex place-content-center" >
+        <section className="w-full h-full flex place-content-center" >
                 
 
                 <AnimatePresence>
@@ -248,8 +248,6 @@ export default function Chatbox() {
                       <>
                       {/* conversation history */}
                       {conversation.slice(0, -1).map((message, index) => (
-                          <>
-
                           <motion.div key={message.content} className={`w-full h-max flex flex-col gap-2 p-5 ${message.role === 'user' ? 'place-content-end place-items-end' : 'place-content-start place-items-start'}`}>
                               
                               <motion.div 
@@ -264,14 +262,11 @@ export default function Chatbox() {
                               <motion.span className="text-sm text-muted-foreground">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</motion.span>
 
                           </motion.div>
-                          </>
                       ))}
 
                       {/* latest message */}
                       {conversation.slice(-1).map((message, index) => (
-                        <>
-                    
-                          <motion.div key={message.content} className={`w-full h-max flex flex-col gap-2 p-5 ${message.role === 'user' ? 'place-content-end' : 'place-content-start'}`} >
+                        <motion.div key={message.content} className={`w-full h-max flex flex-col gap-2 p-5 ${message.role === 'user' ? 'place-content-end' : 'place-content-start'}`} >
                       
                               <motion.div 
                               ref={ref}
@@ -290,7 +285,6 @@ export default function Chatbox() {
 
 
                           </motion.div>
-                        </>
                       ))}
                       </>
                     )}
@@ -298,8 +292,6 @@ export default function Chatbox() {
                     {conversation.length < 5 && (
                       <>
                         {conversation.map((message, index) => (
-                          <>
-
                           <motion.div key={message.content} className={`w-full h-max flex flex-col gap-2 p-5 ${message.role === 'user' ? 'place-content-end place-items-end' : 'place-content-start place-items-start'}`}>
                               
                               <motion.div 
@@ -314,7 +306,6 @@ export default function Chatbox() {
                               <motion.span className="text-sm text-muted-foreground">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</motion.span>
 
                           </motion.div>
-                          </>
                       ))}
                       </>
                     )}
@@ -362,27 +353,6 @@ export default function Chatbox() {
 
                 </motion.div>
 
-            </section> 
-        </>
+            </section>
     )
 }
-
-// {conversation.slice(0, -1).map((message, index) => (
-//   <>
-
-//   <motion.div key={message.content} className={`w-full h-max flex flex-col gap-2 p-5 ${message.role === 'user' ? 'place-content-end place-items-end' : 'place-content-start place-items-start'}`} >
-      
-//       <motion.div 
-    
-//       className={`cursor-pointer flex gap-6 rounded-xl px-7 place-items-start place-content-start p-3 w-max  sm:max-w-[300px]  h-max  ${message.role === 'user' ? 'bg-[#31363F]' : 'bg-transparent'}`} key={index}>
-//             {message.role != 'user' && <div className="w-max p-1 h-10 rounded-full bg-[#76ABAE]"></div>}
-//             <ReactMarkdown rehypePlugins={[rehypeRaw]} className="prose-sm">{message.content}</ReactMarkdown>
-
-//           {/* {message.content} */}
-//       </motion.div>
-
-//       <motion.span className="text-sm text-muted-foreground">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</motion.span>
-
-//   </motion.div>
-//   </>
-// ))}

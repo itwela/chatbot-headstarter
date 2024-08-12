@@ -1,15 +1,12 @@
 'use client'
 
-import Image from "next/image";
 import Chatbox from "./chatbot-components/chat";
 import { useChatbot } from "./chatbotProvider";
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import { useAnimate, stagger } from "framer-motion"
+import { useEffect, useState, useRef } from "react";
 import { AnimatedTextProps } from "./chatbot-components/chat";
 import { useAnimation, useInView } from "framer-motion";
-import { useRef } from "react";
 
 const defaultAnimations = {
   hidden: {
@@ -107,7 +104,6 @@ export default function Home() {
 
   useEffect(() => {
     setStart(false);
-    console.log("start", start);
   }, []);
   
   return (
