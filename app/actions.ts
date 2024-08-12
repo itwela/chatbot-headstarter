@@ -12,6 +12,7 @@ export interface Message {
 }
 
 const conversationHistory: Record<string, Message[]> = {};
+
 export async function streamConversation(history: Message[]) {
     const model = google("models/gemini-1.5-flash");
   
