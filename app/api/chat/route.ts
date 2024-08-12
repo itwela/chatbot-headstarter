@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     // Create embeddings
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY!,
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
       modelName: 'embedding-001',
     });
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     // Initialize ChatGoogleGenerativeAI
     const model = new ChatGoogleGenerativeAI({
       modelName: 'gemini-1.5-flash',
-      apiKey: process.env.GOOGLE_API_KEY!,
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
     });
 
     // Create prompt template
