@@ -6,7 +6,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createRetrievalChain } from 'langchain/chains/retrieval';
 import { createStuffDocumentsChain } from 'langchain/chains/combine_documents';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { Message } from '@/app/actions';
+import { Message } from '@/app/chatbot-components/chat';
 
 export async function POST(request: Request) {
   try {
