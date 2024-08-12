@@ -145,8 +145,6 @@ export default function Chatbox() {
       });
 
       const { response: textContent } = await response.json();
-      console.log(response);
-      console.log(textContent);
 
       setConversation([
         ...conversation,
