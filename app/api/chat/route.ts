@@ -6,6 +6,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createRetrievalChain } from 'langchain/chains/retrieval';
 import { createStuffDocumentsChain } from 'langchain/chains/combine_documents';
 import { PromptTemplate } from '@langchain/core/prompts';
+import { Message } from '@/app/actions';
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
     // Create embeddings
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+      apiKey: process.env.GOOGLE_API_KEY!,
       modelName: 'embedding-001',
     });
 
@@ -29,15 +30,16 @@ export async function POST(request: Request) {
 
     // Initialize ChatGoogleGenerativeAI
     const model = new ChatGoogleGenerativeAI({
-      modelName: 'gemini-pro',
+      modelName: 'gemini-1.5-flash',
       apiKey: process.env.GOOGLE_API_KEY!,
     });
 
     // Create prompt template
     const prompt = PromptTemplate.fromTemplate(`
-      Answer the following question based on the provided context:
+      You are a friendly chatbot that gives the BEST advice for sneakers. You are the BIGGEST sneakerhead. You use every bit of information you know from the Context to provide the best answer and use all available information from the chat history to help determin your answer. Your job is to become the user's best friend. If they ask for advice try your best to advise. You MUST finish all responses in complete sentences. Never just stop in the middle of a sentence.
       Question: {question}
       Context: {context}
+      chat_history: {chat_history}
       Answer:
     `);
 
@@ -56,10 +58,12 @@ export async function POST(request: Request) {
     // Get response from the chain
     const response = await retrievalChain.invoke({
       input: message,
-      chat_history: history,
+      chat_history: history.map((message: Message) => `${message.role} said ${message.content}`).join('\n'),
+      question: message,
+      context: documentChain.toJSON(),
     });
 
-    return NextResponse.json({ response: response.answer });
+    return NextResponse.json({ response: response });
   } catch (error) {
     console.error('Error in chat endpoint:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

@@ -27,29 +27,6 @@ export async function streamConversation(history: Message[]) {
     };
 }
 
-// export async function streamConversation(history: Message[]) {
-//     const stream = createStreamableValue();
-//     const model = google("models/gemini-1.5-flash");
-  
-//     (async () => {
-//       const { textStream } = await streamText({
-//         model: model,
-//         messages: history,
-//       });
-  
-//       for await (const text of textStream) {
-//         stream.update(text);
-//       }
-  
-//       stream.done();
-//     })().then(() => {});
-  
-//     return {
-//       messages: history,
-//       newMessage: stream.value,
-//     };
-// }
-
 export async function getConversationHistory(city: string) {
     return conversationHistory[city] || [];
 }
